@@ -1,13 +1,16 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
-import { Button } from './components';
+import { rectSortingStrategy } from "@dnd-kit/sortable";
+import { MultipleContainers } from "./containers/Sortable/MultipleContainers";
+
+
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+        
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
         </p>
@@ -19,8 +22,9 @@ function App() {
         >
           Learn React
         </a>
-        <Button>Test Button</Button>
+        
       </header>
+      <MultipleContainers itemCount={5} strategy={rectSortingStrategy} />
     </div>
   );
 }
