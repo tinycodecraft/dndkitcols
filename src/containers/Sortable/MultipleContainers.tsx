@@ -195,7 +195,10 @@ export function MultipleContainers({
    */
   const collisionDetectionStrategy: CollisionDetection = useCallback(
     (args) => {
+      // here is to locate the outer container (i.e. column A, B, ...)
+      // if yes, the key of items will be matched, that dragged item is outer container
       if (activeId && activeId in items) {
+        
         return closestCenter({
           ...args,
           droppableContainers: args.droppableContainers.filter(
@@ -206,14 +209,18 @@ export function MultipleContainers({
 
       // Start by finding any intersecting droppable
       const pointerIntersections = pointerWithin(args);
+      
       const intersections =
         pointerIntersections.length > 0
           ? // If there are droppables intersecting with the pointer, return those
             pointerIntersections
           : rectIntersection(args);
+
+      // the first collision is outer container
       let overId = getFirstCollision(intersections, "id");
 
       if (overId != null) {
+        
         if (overId === TRASH_ID) {
           // If the intersecting droppable is the trash, return early
           // Remove this if you're not using trashable functionality in your app
@@ -221,6 +228,8 @@ export function MultipleContainers({
         }
 
         if (overId in items) {
+          // here if overlapped outer container is found
+          
           const containerItems = items[overId];
 
           // If a container is matched and it contains items (columns 'A', 'B', 'C')
@@ -234,6 +243,10 @@ export function MultipleContainers({
                   containerItems.includes(container.id)
               ),
             })[0]?.id;
+
+            //rework the actual overlapped item within the outer container located before
+
+
           }
         }
 
