@@ -78,10 +78,16 @@ function DroppableContainer({
     },
     animateLayoutChanges,
   });
+
+  // the type is passed through useSortable by data properties
+  // data.current is from setNodeRef
   const isOverContainer = over
     ? (id === over.id && active?.data.current?.type !== "container") ||
       items.includes(over.id)
     : false;
+
+  // check only item over container
+
 
   return (
     <Container
@@ -198,7 +204,6 @@ export function MultipleContainers({
       // here is to locate the outer container (i.e. column A, B, ...)
       // if yes, the key of items will be matched, that dragged item is outer container
       if (activeId && activeId in items) {
-        
         return closestCenter({
           ...args,
           droppableContainers: args.droppableContainers.filter(
@@ -209,7 +214,7 @@ export function MultipleContainers({
 
       // Start by finding any intersecting droppable
       const pointerIntersections = pointerWithin(args);
-      
+
       const intersections =
         pointerIntersections.length > 0
           ? // If there are droppables intersecting with the pointer, return those
@@ -220,7 +225,6 @@ export function MultipleContainers({
       let overId = getFirstCollision(intersections, "id");
 
       if (overId != null) {
-        
         if (overId === TRASH_ID) {
           // If the intersecting droppable is the trash, return early
           // Remove this if you're not using trashable functionality in your app
@@ -229,7 +233,7 @@ export function MultipleContainers({
 
         if (overId in items) {
           // here if overlapped outer container is found
-          
+
           const containerItems = items[overId];
 
           // If a container is matched and it contains items (columns 'A', 'B', 'C')
@@ -245,8 +249,6 @@ export function MultipleContainers({
             })[0]?.id;
 
             //rework the actual overlapped item within the outer container located before
-
-
           }
         }
 
@@ -255,11 +257,14 @@ export function MultipleContainers({
         return [{ id: overId }];
       }
 
+      
+
       // When a draggable item moves to a new container, the layout may shift
       // and the `overId` may become `null`. We manually set the cached `lastOverId`
       // to the id of the draggable item that was moved to the new container, otherwise
       // the previous `overId` will be returned which can cause items to incorrectly shift positions
       if (recentlyMovedToNewContainer.current) {
+        console.log(` when new container is true ?? `, recentlyMovedToNewContainer.current)
         lastOverId.current = activeId;
       }
 
@@ -284,6 +289,7 @@ export function MultipleContainers({
     return Object.keys(items).find((key) => items[key].includes(id));
   };
 
+  // try to get the index under container
   const getIndex = (id: UniqueIdentifier) => {
     const container = findContainer(id);
 
@@ -333,14 +339,23 @@ export function MultipleContainers({
           return;
         }
 
+        // need process for drag over only if it's item
+        // container drag over not processed ..
+        
+
         const overContainer = findContainer(overId);
         const activeContainer = findContainer(active.id);
 
         if (!overContainer || !activeContainer) {
+          // if drag over placeholder for creating new container
+          // will not process in drag over
           return;
         }
+        
 
         if (activeContainer !== overContainer) {
+          
+          // do move item from one container to another
           setItems((items) => {
             const activeItems = items[activeContainer];
             const overItems = items[overContainer];
@@ -348,23 +363,38 @@ export function MultipleContainers({
             const activeIndex = activeItems.indexOf(active.id);
 
             let newIndex: number;
+            // seems only active id & over id are items only
 
             if (overId in items) {
+              // when overid is container 
+              // it means no item in that container
+              
               newIndex = overItems.length + 1;
             } else {
+
+              // happen when first happen with active item over item in different container
+
               const isBelowOverItem =
                 over &&
                 active.rect.current.translated &&
                 active.rect.current.translated.top >
                   over.rect.top + over.rect.height;
 
+              // isbelow happen when the overlapping under whole list of over container
+
               const modifier = isBelowOverItem ? 1 : 0;
+
+              // no over item id (means it just over container id) => item count +1
 
               newIndex =
                 overIndex >= 0 ? overIndex + modifier : overItems.length + 1;
             }
 
+            
+
             recentlyMovedToNewContainer.current = true;
+
+            // create new set of items (if modifier true => push one more to upper portion before over item)
 
             return {
               ...items,
@@ -384,7 +414,10 @@ export function MultipleContainers({
         }
       }}
       onDragEnd={({ active, over }) => {
+        
+        
         if (active.id in items && over?.id) {
+          // act if container being dragged.
           setContainers((containers) => {
             const activeIndex = containers.indexOf(active.id);
             const overIndex = containers.indexOf(over.id);
@@ -393,16 +426,23 @@ export function MultipleContainers({
           });
         }
 
+        // here start to aim item dragged end
+
         const activeContainer = findContainer(active.id);
 
         if (!activeContainer) {
+          // it seems impossible if dragged item from no container
+          console.log(` can active id with no container ?? `, active);
+
           setActiveId(null);
           return;
         }
 
         const overId = over?.id;
+        
 
         if (overId == null) {
+          console.log(` can over id empty ?? `, over);
           setActiveId(null);
           return;
         }
@@ -559,6 +599,9 @@ export function MultipleContainers({
   }
 
   function renderContainerDragOverlay(containerId: UniqueIdentifier) {
+
+    // only invoke with container dragged.
+    
     return (
       <Container
         label={`Column ${containerId}`}
