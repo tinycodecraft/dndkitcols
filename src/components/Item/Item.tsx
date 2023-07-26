@@ -40,6 +40,9 @@ export interface Props {
     value: Props["value"];
   }): React.ReactElement;
 }
+// handle props (setActivatorNodeRef) is noderef target to the handle if handle is true
+// normally listeners is sufficient for drage handle function 
+// handle props is to increase sensitivity (if the item is small)
 
 export const Item = React.memo(
   React.forwardRef<HTMLLIElement, Props>(

@@ -86,8 +86,7 @@ function DroppableContainer({
       items.includes(over.id)
     : false;
 
-  // check only item over container
-
+  // check only item over container to give hover background color
 
   return (
     <Container
@@ -461,6 +460,9 @@ export function MultipleContainers({
         if (overId === PLACEHOLDER_ID) {
           const newContainerId = getNextContainerId();
 
+          // if over container == placeholder,  create new container to hold dragged item 
+          // usestable_batchedUpdates in dndkit to do massive work
+
           unstable_batchedUpdates(() => {
             setContainers((containers) => [...containers, newContainerId]);
             setItems((items) => ({
@@ -475,13 +477,18 @@ export function MultipleContainers({
           return;
         }
 
+        
+
         const overContainer = findContainer(overId);
+
+        // only created container consider (not placeholder or trash)
 
         if (overContainer) {
           const activeIndex = items[activeContainer].indexOf(active.id);
           const overIndex = items[overContainer].indexOf(overId);
 
           if (activeIndex !== overIndex) {
+            // only deal with drag-end in the same container ( over container == active container)
             setItems((items) => ({
               ...items,
               [overContainer]: arrayMove(
